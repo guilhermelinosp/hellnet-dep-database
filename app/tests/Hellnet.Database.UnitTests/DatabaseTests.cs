@@ -148,7 +148,7 @@ public sealed class DatabaseRetryPolicyTests
         var options = new HellnetDatabaseOptions
         {
             Database = "t", Username = "u", Password = "p",
-            RetryEnabled = true, RetryMaxCount = 2, RetryBaseDelayMs = 1,
+            RetryEnabled = true, RetryMaxCount = 1, RetryBaseDelayMs = 1,
         };
         var policy = new DatabaseRetryPolicy(options, _logger);
         var calls = 0;
@@ -159,7 +159,7 @@ public sealed class DatabaseRetryPolicyTests
                 calls++;
                 throw new TimeoutException("transient");
             }, default));
-        Assert.Equal(2, calls); // 2 attempts = max retries
+        Assert.Equal(2, calls); // original + 1 retry
     }
 
     [Fact]

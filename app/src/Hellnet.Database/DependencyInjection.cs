@@ -1,7 +1,6 @@
 using Hellnet.Database.Abstractions;
 using Hellnet.Database.Configuration;
 using Hellnet.Database.HealthChecks;
-using Hellnet.Database.Observability;
 using Hellnet.Database.PostgreSql;
 using Hellnet.Database.Resilience;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,16 +42,5 @@ public static class DependencyInjection
         services.AddTransient(typeof(IRepository<>), typeof(PostgresRepository<>));
 
         return services;
-    }
-
-    /// <summary>
-    /// Registers Hellnet.Database metrics in OpenTelemetry MeterProviderBuilder.
-    /// Usage: builder.Services.AddHellnetMetrics(metrics => metrics.AddHellnetDatabaseMetrics());
-    /// </summary>
-    public static OpenTelemetry.Metrics.MeterProviderBuilder AddHellnetDatabaseMetrics(
-        this OpenTelemetry.Metrics.MeterProviderBuilder builder)
-    {
-        DatabaseMetrics.AddMeter(builder);
-        return builder;
     }
 }
