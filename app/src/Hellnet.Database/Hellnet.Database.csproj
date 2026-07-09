@@ -31,6 +31,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <None Include="..\..\..\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <ItemGroup>
         <InternalsVisibleTo Include="Hellnet.Database.UnitTests" />
         <InternalsVisibleTo Include="Hellnet.Database.IntegrationTests" />
     </ItemGroup>
