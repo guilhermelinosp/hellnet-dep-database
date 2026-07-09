@@ -1,13 +1,12 @@
 # Hellnet.Database
 
-PostgreSQL-first database infrastructure library for .NET. Env-first, modular, cloud-native.
+Biblioteca de infraestrutura de banco de dados PostgreSQL-first para .NET. Configuração via environment variables, modular, cloud-native.
 
 ```
 Env vars → HellnetDatabaseOptions → NpgsqlDataSource → IDatabaseExecutor / IRepository<T>
 ```
 
 [![NuGet](https://img.shields.io/nuget/v/Hellnet.Database)](https://www.nuget.org/packages/Hellnet.Database)
-[![ADR](https://img.shields.io/badge/ADR-Architecture%20Decision%20Records-blue)](https://gist.github.com/guilhermelinosp/f8856a8731fa95becc0af87a75379659)
 
 ---
 
@@ -144,16 +143,16 @@ PageResult<Order> page = new()
 | `HELLNET_DATABASE_PASSWORD` | ✅ | — | Senha |
 | `HELLNET_DATABASE_POOL_MIN_SIZE` | ❌ | `10` | Pool mínimo |
 | `HELLNET_DATABASE_POOL_MAX_SIZE` | ❌ | `100` | Pool máximo |
-| `HELLNET_DATABASE_COMMAND_TIMEOUT_SECONDS` | ❌ | `30` | Timeout de comandos |
+| `HELLNET_DATABASE_COMMAND_TIMEOUT_SECONDS` | ❌ | `30` | Command timeout |
 | `HELLNET_DATABASE_RETRY_ENABLED` | ❌ | `true` | Habilitar retry |
-| `HELLNET_DATABASE_RETRY_MAX_COUNT` | ❌ | `3` | Máximo de tentativas |
+| `HELLNET_DATABASE_RETRY_MAX_COUNT` | ❌ | `3` | Máximo de retry attempts |
 | `HELLNET_DATABASE_RETRY_BASE_DELAY_MS` | ❌ | `100` | Delay base do backoff |
 
 ---
 
 ## Resiliência (Polly)
 
-Retry automático com backoff exponencial. Erros permanentes **não** são retentados:
+Retry automático com exponential backoff. Erros permanentes **não** são retentados:
 
 | SQL State | Erro | Motivo |
 |-----------|------|--------|
@@ -171,46 +170,29 @@ export HELLNET_DATABASE_RETRY_ENABLED=false
 
 ---
 
-## Diagrama da Arquitetura
+## Arquitetura
 
 ```
 Hellnet.Database
 ├── Abstractions
-│   ├── IDatabaseExecutor       ← QueryAsync, ExecuteAsync, ScalarAsync
+│   ├── IDatabaseExecutor       ← QueryAsync, ExecuteAsync, Scalar
 │   ├── IDatabaseTransaction    ← Begin/Commit/Rollback
-│   ├── IDatabaseConnectionFactory ← Factory para conexões
+│   ├── IDatabaseConnectionFactory ← Factory pattern
 │   ├── IRepository<T>          ← CRUD genérico
-│   ├── ISpecification<T>       ← Filtros reutilizáveis
-│   ├── DatabaseResult<T>       ← Resultado tipado
-│   └── PageResult<T>           ← Resultado paginado
+│   ├── ISpecification<T>       ← Query filters
+│   ├── DatabaseResult<T>       ← Typed result
+│   └── PageResult<T>           ← Paginated result
 ├── Configuration
 │   ├── HellnetDatabaseOptions  ← Options imutáveis (init)
-│   └── DatabaseEnvBinder       ← Leitura de env vars
+│   └── DatabaseEnvBinder       ← Env-first reader
 ├── PostgreSql
 │   ├── PostgresConnectionFactory  ← NpgsqlDataSource
 │   ├── NpgsqlExecutor             ← Dapper
-│   ├── NpgsqlTransaction          ← Transação
+│   ├── NpgsqlTransaction          ← Transaction
 │   └── PostgresRepository<T>      ← Repository implementation
 └── Resilience
     └── DatabaseRetryPolicy     ← Polly + SQL state discrimination
 ```
-
----
-
-## Decisões Técnicas (ADR)
-
-Todas as decisões arquiteturais estão documentadas no [ADR - Architecture Decision Records](https://gist.github.com/guilhermelinosp/f8856a8731fa95becc0af87a75379659).
-
-| ADR | Decisão |
-|-----|---------|
-| ADR-0001 | Configuração env-first com campos individuais |
-| ADR-0002 | Abstrações agnósticas a provider |
-| ADR-0003 | NpgsqlDataSource como gerenciador de conexões |
-| ADR-0004 | Transação com escopo e rollback automático |
-| ADR-0005 | Resiliência com Polly + discriminação de erros |
-| ADR-0006 | Repository pattern sem ORM |
-| ADR-0007 | Zero observabilidade (delegado ao Hellnet.Observability) |
-| ADR-0008 | Dapper como mapper padrão |
 
 ---
 
@@ -234,11 +216,11 @@ Health checks e logging são delegados ao [`Hellnet.Observability`](https://gith
 |------|-----------|
 | [`hellnet-dep-kafka`](https://github.com/guilhermelinosp/hellnet-dep-kafka) | Kafka pub/sub |
 | [`hellnet-dep-observability`](https://github.com/guilhermelinosp/hellnet-dep-observability) | OpenTelemetry + logging |
-| [`hellnet-dep-cache`](https://github.com/guilhermelinosp/hellnet-dep-cache) | Cache multi-layer |
+| [`hellnet-dep-cache`](https://github.com/guilhermelinosp/hellnet-dep-cache) | Multi-layer cache |
 | [`hellnet-dep-schema`](https://github.com/guilhermelinosp/hellnet-dep-schema) | Schema registry management |
 
 ---
 
 ## Licença
 
-Apache 2.0 — veja [LICENSE](LICENSE).
+Apache 2.0 © 2026 Hellnet
