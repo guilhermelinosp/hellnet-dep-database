@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Hellnet.Database.Abstractions;
 using Hellnet.Database.Configuration;
 
@@ -7,6 +9,7 @@ using Npgsql;
 
 namespace Hellnet.Database.PostgreSql;
 
+[ExcludeFromCodeCoverage]
 internal sealed class PostgresConnectionFactory(HellnetDatabaseOptions options, ILoggerFactory loggerFactory) : IDatabaseConnectionFactory, IAsyncDisposable, IDisposable
 {
     private readonly NpgsqlDataSource _dataSource = new NpgsqlDataSourceBuilder(options.BuildConnectionString()).Build();

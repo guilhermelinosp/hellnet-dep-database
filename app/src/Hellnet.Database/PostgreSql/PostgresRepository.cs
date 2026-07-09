@@ -85,6 +85,7 @@ internal sealed class PostgresRepository<T>(
     }
 }
 
+[ExcludeFromCodeCoverage]
 internal sealed record ByIdSpecification<T, TId>(TId Id) : ISpecification<T>
     where T : class
 {
