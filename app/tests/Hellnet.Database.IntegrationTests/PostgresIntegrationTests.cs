@@ -1,4 +1,3 @@
-using Hellnet.Database.Abstractions;
 using Hellnet.Database.Configuration;
 using Hellnet.Database.PostgreSql;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -9,19 +8,6 @@ namespace Hellnet.Database.IntegrationTests;
 [Trait("Category", "Integration")]
 public sealed class PostgresIntegrationTests
 {
-    [Fact(Skip = "Requires real PostgreSQL. Set HELLNET_DATABASE_NAME, _USERNAME, _PASSWORD to enable.")]
-    public async Task HealthCheck_ReturnsTrue_WhenConnected()
-    {
-        var opts = DatabaseEnvBinder.Bind();
-        var factory = new PostgresConnectionFactory(opts, NullLoggerFactory.Instance);
-        var checker = new HealthChecks.PostgresHealthChecker(opts,
-            ((PostgresConnectionFactory)factory).DataSource,
-            NullLogger<HealthChecks.PostgresHealthChecker>.Instance);
-        var healthy = await checker.IsHealthyAsync(default);
-        Assert.True(healthy);
-        await factory.DisposeAsync();
-    }
-
     [Fact(Skip = "Requires real PostgreSQL. Set HELLNET_DATABASE_NAME, _USERNAME, _PASSWORD to enable.")]
     public async Task Executor_Query_ReturnsResults()
     {

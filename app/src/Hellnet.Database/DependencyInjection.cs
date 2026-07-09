@@ -1,6 +1,5 @@
 using Hellnet.Database.Abstractions;
 using Hellnet.Database.Configuration;
-using Hellnet.Database.HealthChecks;
 using Hellnet.Database.PostgreSql;
 using Hellnet.Database.Resilience;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,9 +33,6 @@ public static class DependencyInjection
             var opts = sp.GetRequiredService<HellnetDatabaseOptions>();
             return new NpgsqlDataSourceBuilder(opts.BuildConnectionString()).Build();
         });
-
-        if (options.EnableHealthCheck)
-            services.AddSingleton<IDatabaseHealthChecker, PostgresHealthChecker>();
 
         // Register IRepository<T> open generic
         services.AddTransient(typeof(IRepository<>), typeof(PostgresRepository<>));

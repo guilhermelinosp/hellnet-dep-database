@@ -1,6 +1,5 @@
 using Hellnet.Database.Abstractions;
 using Hellnet.Database.Configuration;
-using Hellnet.Database.HealthChecks;
 using Hellnet.Database.PostgreSql;
 using Hellnet.Database.Resilience;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +24,6 @@ public sealed class DatabaseEnvBinderTests : IDisposable
             "HELLNET_DATABASE_COMMAND_TIMEOUT_SECONDS", "HELLNET_DATABASE_CONNECTION_TIMEOUT_SECONDS",
             "HELLNET_DATABASE_RETRY_ENABLED", "HELLNET_DATABASE_RETRY_MAX_COUNT",
             "HELLNET_DATABASE_RETRY_BASE_DELAY_MS", "HELLNET_DATABASE_SLOW_QUERY_MS",
-            "HELLNET_DATABASE_ENABLE_METRICS", "HELLNET_DATABASE_ENABLE_HEALTH_CHECK",
         })
         {
             Environment.SetEnvironmentVariable(key, null);
@@ -45,7 +43,6 @@ public sealed class DatabaseEnvBinderTests : IDisposable
         Assert.Equal(100, opts.PoolMaxSize);
         Assert.Equal(30, opts.CommandTimeoutSeconds);
         Assert.True(opts.RetryEnabled);
-        Assert.True(opts.EnableMetrics);
     }
 
     [Fact]
@@ -58,7 +55,6 @@ public sealed class DatabaseEnvBinderTests : IDisposable
         Environment.SetEnvironmentVariable("HELLNET_DATABASE_PASSWORD", "secret");
         Environment.SetEnvironmentVariable("HELLNET_DATABASE_POOL_MAX_SIZE", "50");
         Environment.SetEnvironmentVariable("HELLNET_DATABASE_RETRY_ENABLED", "false");
-        Environment.SetEnvironmentVariable("HELLNET_DATABASE_ENABLE_METRICS", "false");
 
         var opts = DatabaseEnvBinder.Bind();
         Assert.Equal("pg.hellnet.com.br", opts.Host);
@@ -68,7 +64,6 @@ public sealed class DatabaseEnvBinderTests : IDisposable
         Assert.Equal("secret", opts.Password);
         Assert.Equal(50, opts.PoolMaxSize);
         Assert.False(opts.RetryEnabled);
-        Assert.False(opts.EnableMetrics);
     }
 
     [Fact]
@@ -204,20 +199,6 @@ public sealed class DatabaseRetryPolicyTests
     }
 }
 
-public sealed class PostgresHealthCheckerTests
-{
-    [Fact]
-    public void Constructor_DoesNotThrow()
-    {
-        var options = new HellnetDatabaseOptions { Database = "t", Username = "u", Password = "p" };
-        var logger = NullLogger<PostgresHealthChecker>.Instance;
-        var builder = new Npgsql.NpgsqlDataSourceBuilder(options.BuildConnectionString());
-        var ds = builder.Build();
-        var checker = new PostgresHealthChecker(options, ds, logger);
-        Assert.NotNull(checker);
-        ds.Dispose();
-    }
-}
 [Collection("Sequential")]
 public sealed class DependencyInjectionTests
 {
@@ -247,7 +228,6 @@ public sealed class DependencyInjectionTests
         Assert.NotNull(sp.GetRequiredService<IDatabaseExecutor>());
         Assert.NotNull(sp.GetRequiredService<IDatabaseTransaction>());
         Assert.NotNull(sp.GetRequiredService<IDatabaseConnectionFactory>());
-        Assert.NotNull(sp.GetRequiredService<IDatabaseHealthChecker>());
     }
 
     [Fact]
@@ -260,12 +240,12 @@ public sealed class DependencyInjectionTests
     [Fact]
     public void AddHellnetDatabase_UsesEnv_WhenNoOptions()
     {
-        // Set env vars immediately before Bind()
-        Environment.SetEnvironmentVariable("HELLNET_DATABASE_NAME", "from-env");
-        Environment.SetEnvironmentVariable("HELLNET_DATABASE_USERNAME", "user");
-        Environment.SetEnvironmentVariable("HELLNET_DATABASE_PASSWORD", "pass");
+        var envKey = "HELLNET_DATABASE_NAME_TEMP_" + Guid.NewGuid().ToString("N")[..8];
         try
         {
+            Environment.SetEnvironmentVariable("HELLNET_DATABASE_NAME", "from-env");
+            Environment.SetEnvironmentVariable("HELLNET_DATABASE_USERNAME", "user");
+            Environment.SetEnvironmentVariable("HELLNET_DATABASE_PASSWORD", "pass");
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddHellnetDatabase();

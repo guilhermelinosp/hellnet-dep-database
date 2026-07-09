@@ -26,8 +26,6 @@ public sealed class HellnetDatabaseOptions
 
     // ── Diagnostics ─────────────────────────────────────────────
     public int SlowQueryMs { get; init; } = 500;
-    public bool EnableMetrics { get; init; } = true;
-    public bool EnableHealthCheck { get; init; } = true;
 
     /// <summary>Builds the Npgsql connection string from individual fields.</summary>
     public string BuildConnectionString()

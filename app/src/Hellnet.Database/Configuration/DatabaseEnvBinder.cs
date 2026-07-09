@@ -19,8 +19,6 @@ internal static class DatabaseEnvBinder
             RetryMaxCount = EnvInt("HELLNET_DATABASE_RETRY_MAX_COUNT", 3),
             RetryBaseDelayMs = EnvInt("HELLNET_DATABASE_RETRY_BASE_DELAY_MS", 100),
             SlowQueryMs = EnvInt("HELLNET_DATABASE_SLOW_QUERY_MS", 500),
-            EnableMetrics = EnvBool("HELLNET_DATABASE_ENABLE_METRICS", true),
-            EnableHealthCheck = EnvBool("HELLNET_DATABASE_ENABLE_HEALTH_CHECK", true),
         };
     }
 
