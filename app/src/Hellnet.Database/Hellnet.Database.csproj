@@ -44,7 +44,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="Hellnet.Database.Tests" />
+        <InternalsVisibleTo Include="Hellnet.Database.UnitTests" />
+        <InternalsVisibleTo Include="Hellnet.Database.IntegrationTests" />
     </ItemGroup>
 
     <ItemGroup>
