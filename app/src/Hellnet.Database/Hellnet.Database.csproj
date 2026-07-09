@@ -5,40 +5,28 @@
         <LangVersion>preview</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-
         <AssemblyName>Hellnet.Database</AssemblyName>
         <RootNamespace>Hellnet.Database</RootNamespace>
 
         <PackageId>Hellnet.Database</PackageId>
-        <Title>Hellnet Database</Title>
         <Authors>Hellnet</Authors>
-        <Company>Hellnet</Company>
-        <Copyright>Hellnet</Copyright>
-
-        <Description>Opinionated database abstraction library for .NET applications. Env-first.</Description>
-        <PackageTags>database;postgresql;sqlserver;dapper;dotnet;env-first;hellnet</PackageTags>
-
+        <Description>PostgreSQL-first database infrastructure library. Env-first, modular, cloud-native.</Description>
+        <PackageTags>database;postgresql;npgsql;dapper;dotnet;env-first;hellnet</PackageTags>
         <PackageProjectUrl>https://github.com/guilhermelinosp/hellnet-dep-database</PackageProjectUrl>
         <RepositoryUrl>https://github.com/guilhermelinosp/hellnet-dep-database</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>icon.png</PackageIcon>
-        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-
         <IsPackable>true</IsPackable>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
-
         <Deterministic>true</Deterministic>
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
         <EmbedUntrackedSources>true</EmbedUntrackedSources>
-
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <AnalysisLevel>latest</AnalysisLevel>
-        <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <NoWarn>$(NoWarn);CS1591</NoWarn>
     </PropertyGroup>
@@ -50,10 +38,13 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.9" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+        <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.9" />
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.9" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.9" />
         <PackageReference Include="Npgsql" Version="10.0.0" />
         <PackageReference Include="Dapper" Version="2.1.66" />
+        <PackageReference Include="OpenTelemetry.Api" Version="1.16.0" />
     </ItemGroup>
 
 </Project>

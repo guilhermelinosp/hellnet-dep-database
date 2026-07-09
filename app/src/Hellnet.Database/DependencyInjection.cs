@@ -1,18 +1,17 @@
 using Hellnet.Database.Abstractions;
 using Hellnet.Database.Configuration;
-using Hellnet.Database.Internal;
+using Hellnet.Database.HealthChecks;
+using Hellnet.Database.Observability;
+using Hellnet.Database.PostgreSql;
+using Hellnet.Database.Resilience;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Npgsql;
 
 namespace Hellnet.Database;
 
-/// <summary>
-/// Extension methods for registering Hellnet.Database services in DI.
-/// Env-first: reads HELLNET_DATABASE_* environment variables automatically.
-/// </summary>
 public static class DependencyInjection
 {
-    /// <summary>Register database services using environment variables.</summary>
     public static IServiceCollection AddHellnetDatabase(this IServiceCollection services)
     {
         var options = DatabaseEnvBinder.Bind();
@@ -20,25 +19,40 @@ public static class DependencyInjection
         return services.AddHellnetDatabase(options);
     }
 
-    /// <summary>Register database services with explicit options.</summary>
     public static IServiceCollection AddHellnetDatabase(
         this IServiceCollection services,
         HellnetDatabaseOptions options)
     {
         services.AddSingleton(options);
-        services.AddSingleton<IDatabase>(sp =>
+        services.AddSingleton<IDatabaseConnectionFactory, PostgresConnectionFactory>();
+        services.AddSingleton<IDatabaseExecutor>(sp =>
+            sp.GetRequiredService<IDatabaseConnectionFactory>().CreateExecutor());
+        services.AddSingleton<IDatabaseTransaction>(sp =>
+            sp.GetRequiredService<IDatabaseConnectionFactory>().CreateTransaction());
+        services.AddSingleton<DatabaseRetryPolicy>();
+        services.AddSingleton<NpgsqlDataSource>(sp =>
         {
             var opts = sp.GetRequiredService<HellnetDatabaseOptions>();
-            var logger = sp.GetRequiredService<ILogger<PostgresDatabase>>();
-            return new PostgresDatabase(opts, logger);
+            return new NpgsqlDataSourceBuilder(opts.BuildConnectionString()).Build();
         });
 
         if (options.EnableHealthCheck)
-        {
-            services.AddSingleton<IDatabaseHealthCheck>(sp =>
-                (PostgresDatabase)sp.GetRequiredService<IDatabase>());
-        }
+            services.AddSingleton<IDatabaseHealthChecker, PostgresHealthChecker>();
+
+        // Register IRepository<T> open generic
+        services.AddTransient(typeof(IRepository<>), typeof(PostgresRepository<>));
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers Hellnet.Database metrics in OpenTelemetry MeterProviderBuilder.
+    /// Usage: builder.Services.AddHellnetMetrics(metrics => metrics.AddHellnetDatabaseMetrics());
+    /// </summary>
+    public static OpenTelemetry.Metrics.MeterProviderBuilder AddHellnetDatabaseMetrics(
+        this OpenTelemetry.Metrics.MeterProviderBuilder builder)
+    {
+        DatabaseMetrics.AddMeter(builder);
+        return builder;
     }
 }
