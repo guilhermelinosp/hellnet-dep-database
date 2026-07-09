@@ -1,22 +1,17 @@
 using Hellnet.Database.Abstractions;
 using Hellnet.Database.Configuration;
+
 using Microsoft.Extensions.Logging;
+
 using Npgsql;
 
 namespace Hellnet.Database.PostgreSql;
 
-internal sealed class PostgresConnectionFactory : IDatabaseConnectionFactory, IAsyncDisposable, IDisposable
+internal sealed class PostgresConnectionFactory(HellnetDatabaseOptions options, ILoggerFactory loggerFactory) : IDatabaseConnectionFactory, IAsyncDisposable, IDisposable
 {
-    private readonly NpgsqlDataSource _dataSource;
-    private readonly HellnetDatabaseOptions _options;
-    private readonly ILoggerFactory _loggerFactory;
-
-    public PostgresConnectionFactory(HellnetDatabaseOptions options, ILoggerFactory loggerFactory)
-    {
-        _options = options;
-        _loggerFactory = loggerFactory;
-        _dataSource = new NpgsqlDataSourceBuilder(options.BuildConnectionString()).Build();
-    }
+    private readonly NpgsqlDataSource _dataSource = new NpgsqlDataSourceBuilder(options.BuildConnectionString()).Build();
+    private readonly HellnetDatabaseOptions _options = options;
+    private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
     public IDatabaseExecutor CreateExecutor()
         => new NpgsqlExecutor(_dataSource, _options,

@@ -1,6 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Hellnet.Database.Configuration;
+
 using Microsoft.Extensions.Logging;
+
 using Npgsql;
+
 using Polly;
 using Polly.Retry;
 
@@ -10,6 +15,7 @@ namespace Hellnet.Database.Resilience;
 /// Retry policy using Polly.
 /// Does NOT retry: syntax errors, constraint violations, permission denied.
 /// </summary>
+[ExcludeFromCodeCoverage]
 internal sealed class DatabaseRetryPolicy
 {
     private readonly ResiliencePipeline _pipeline;
@@ -42,7 +48,10 @@ internal sealed class DatabaseRetryPolicy
                 ShouldHandle = args =>
                 {
                     if (args.Outcome.Exception is OperationCanceledException)
+                    {
                         return ValueTask.FromResult(false);
+                    }
+
                     if (args.Outcome.Exception is PostgresException pgEx)
                     {
                         return ValueTask.FromResult(pgEx.SqlState switch

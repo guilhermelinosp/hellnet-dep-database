@@ -4,18 +4,18 @@ namespace Hellnet.Database.Abstractions;
 public interface IRepository<T>
     where T : class
 {
-    Task<T?> GetByIdAsync<TId>(TId id, CancellationToken ct = default);
-    Task<IReadOnlyList<T>> GetAllAsync(CancellationToken ct = default);
-    Task<IReadOnlyList<T>> FindAsync(ISpecification<T> spec, CancellationToken ct = default);
-    Task<PageResult<T>> PaginateAsync(ISpecification<T> spec, int page, int pageSize, CancellationToken ct = default);
-    Task<int> CountAsync(ISpecification<T> spec, CancellationToken ct = default);
+    public Task<T?> GetByIdAsync<TId>(TId id, CancellationToken ct = default);
+    public Task<IReadOnlyList<T>> GetAllAsync(CancellationToken ct = default);
+    public Task<IReadOnlyList<T>> FindAsync(ISpecification<T> spec, CancellationToken ct = default);
+    public Task<PageResult<T>> PaginateAsync(ISpecification<T> spec, int page, int pageSize, CancellationToken ct = default);
+    public Task<int> CountAsync(ISpecification<T> spec, CancellationToken ct = default);
 }
 
 /// <summary>Query specification. Lean — no complex expression trees.</summary>
 public interface ISpecification<T>
     where T : class
 {
-    string Sql { get; }
-    object? Parameters { get; }
-    string? OrderBy { get; }
+    public string Sql { get; }
+    public object? Parameters { get; }
+    public string? OrderBy { get; }
 }

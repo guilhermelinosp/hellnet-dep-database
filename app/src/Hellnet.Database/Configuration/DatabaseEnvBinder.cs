@@ -26,17 +26,30 @@ internal static class DatabaseEnvBinder
     {
         var missing = new List<string>();
         if (string.IsNullOrWhiteSpace(options.Database))
+        {
             missing.Add("HELLNET_DATABASE_NAME");
+        }
+
         if (string.IsNullOrWhiteSpace(options.Username))
+        {
             missing.Add("HELLNET_DATABASE_USERNAME");
+        }
+
         if (string.IsNullOrWhiteSpace(options.Password))
+        {
             missing.Add("HELLNET_DATABASE_PASSWORD");
+        }
+
         if (options.PoolMaxSize <= 0)
+        {
             missing.Add("HELLNET_DATABASE_POOL_MAX_SIZE (must be > 0)");
+        }
 
         if (missing.Count > 0)
+        {
             throw new InvalidOperationException(
                 $"Missing or invalid environment variables: {string.Join(", ", missing)}");
+        }
     }
 
     internal static string Env(string key, string fallback)
