@@ -1,0 +1,29 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.csproj.user
+
+# NuGet
+packages/
+*.nupkg
+
+# IDE
+.idea/
+.vs/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+*.opencover.xml
+coverage.json
+
+# Secrets / infra
+*-secret*.yaml
+*-credentials*.yaml
+*-gateway*.yaml
