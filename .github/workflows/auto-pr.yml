@@ -1,0 +1,69 @@
+name: auto-pr
+on:
+  push:
+    branches:
+      - 'feat/**'
+      - 'fix/**'
+jobs:
+  create-pr:
+    uses: guilhermelinosp/ci-templates/.github/workflows/auto-pr.yml@main
+---
+name: pipeline
+on:
+  push:
+    branches: [main]
+jobs:
+  release:
+    uses: guilhermelinosp/ci-templates/.github/workflows/release.yml@main
+    secrets: inherit
+  build:
+    needs: [release]
+    uses: guilhermelinosp/ci-templates/.github/workflows/dotnet-build.yml@main
+    with:
+      version: ${{ needs.release.outputs.version }}
+  push:
+    needs: [build]
+    uses: guilhermelinosp/ci-templates/.github/workflows/dotnet-push.yml@main
+    secrets: inherit
+    with:
+      version: ${{ needs.release.outputs.version }}
+---
+name: pipeline
+on:
+  push:
+    branches: [main]
+jobs:
+  release:
+    uses: guilhermelinosp/ci-templates/.github/workflows/release.yml@main
+    secrets: inherit
+  build:
+    needs: [release]
+    uses: guilhermelinosp/ci-templates/.github/workflows/dotnet-build.yml@main
+    with:
+      version: ${{ needs.release.outputs.version }}
+  push:
+    needs: [build]
+    uses: guilhermelinosp/ci-templates/.github/workflows/dotnet-push.yml@main
+    secrets: inherit
+    with:
+      version: ${{ needs.release.outputs.version }}
+---
+output: false
+pre-commit:
+  commands:
+    format:
+      glob: "{**/*.cs,**/*.yaml,**/*.yml,**/*.json}"
+      exclude:
+        - "**/bin/**"
+        - "**/obj/**"
+      run: |
+        dotnet format app/*.slnx --verbosity quiet --no-restore
+        git diff --cached --name-only --diff-filter=ACM -- '*.yaml' '*.yml' | xargs -r yq eval -i '.'
+        git diff --cached --name-only --diff-filter=ACM -- '*.json' | xargs -r yq eval -i -o=json '.'
+    build:
+      run: dotnet build app/Hellnet.Cache.slnx -c release --nologo
+commit-msg:
+  commands:
+    conventional:
+      run: |
+        grep -Eq '^(feat|fix|docs|style|ref|perf|test|ci|chore|rev)(\(.+\))?!?: .+' {1}

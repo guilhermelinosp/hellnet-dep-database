@@ -2,8 +2,9 @@ using Hellnet.Database.Abstractions;
 using Hellnet.Database.Configuration;
 using Hellnet.Database.PostgreSql;
 using Hellnet.Database.Resilience;
+
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+
 using Npgsql;
 
 namespace Hellnet.Database;
@@ -12,7 +13,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddHellnetDatabase(this IServiceCollection services)
     {
-        var options = DatabaseEnvBinder.Bind();
+        HellnetDatabaseOptions options = DatabaseEnvBinder.Bind();
         DatabaseEnvBinder.Validate(options);
         return services.AddHellnetDatabase(options);
     }
@@ -30,7 +31,7 @@ public static class DependencyInjection
         services.AddSingleton<DatabaseRetryPolicy>();
         services.AddSingleton<NpgsqlDataSource>(sp =>
         {
-            var opts = sp.GetRequiredService<HellnetDatabaseOptions>();
+            HellnetDatabaseOptions opts = sp.GetRequiredService<HellnetDatabaseOptions>();
             return new NpgsqlDataSourceBuilder(opts.BuildConnectionString()).Build();
         });
 

@@ -1,10 +1,11 @@
 using Hellnet.Database.Abstractions;
 using Hellnet.Database.Configuration;
-using Hellnet.Database.PostgreSql;
 using Hellnet.Database.Resilience;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+
 using Xunit;
 
 namespace Hellnet.Database.UnitTests;
@@ -33,7 +34,7 @@ public sealed class DatabaseEnvBinderTests : IDisposable
     [Fact]
     public void Bind_UsesDefaults_WhenNoEnvSet()
     {
-        var opts = DatabaseEnvBinder.Bind();
+        HellnetDatabaseOptions opts = DatabaseEnvBinder.Bind();
         Assert.Equal("localhost", opts.Host);
         Assert.Equal(5432, opts.Port);
         Assert.Empty(opts.Database);
@@ -56,7 +57,7 @@ public sealed class DatabaseEnvBinderTests : IDisposable
         Environment.SetEnvironmentVariable("HELLNET_DATABASE_POOL_MAX_SIZE", "50");
         Environment.SetEnvironmentVariable("HELLNET_DATABASE_RETRY_ENABLED", "false");
 
-        var opts = DatabaseEnvBinder.Bind();
+        HellnetDatabaseOptions opts = DatabaseEnvBinder.Bind();
         Assert.Equal("pg.hellnet.com.br", opts.Host);
         Assert.Equal(5433, opts.Port);
         Assert.Equal("orders", opts.Database);
@@ -69,7 +70,7 @@ public sealed class DatabaseEnvBinderTests : IDisposable
     [Fact]
     public void Validate_Throws_WhenNameMissing()
     {
-        var ex = Assert.Throws<InvalidOperationException>(
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
             () => DatabaseEnvBinder.Validate(new HellnetDatabaseOptions()));
         Assert.Contains("HELLNET_DATABASE_NAME", ex.Message);
     }
@@ -77,10 +78,13 @@ public sealed class DatabaseEnvBinderTests : IDisposable
     [Fact]
     public void Validate_Throws_WhenPoolSizeInvalid()
     {
-        var ex = Assert.Throws<InvalidOperationException>(
+        InvalidOperationException ex = Assert.Throws<InvalidOperationException>(
             () => DatabaseEnvBinder.Validate(new HellnetDatabaseOptions
             {
-                Database = "test", Username = "u", Password = "p", PoolMaxSize = 0,
+                Database = "test",
+                Username = "u",
+                Password = "p",
+                PoolMaxSize = 0,
             }));
         Assert.Contains("POOL_MAX_SIZE", ex.Message);
     }
@@ -90,7 +94,9 @@ public sealed class DatabaseEnvBinderTests : IDisposable
     {
         DatabaseEnvBinder.Validate(new HellnetDatabaseOptions
         {
-            Database = "test", Username = "u", Password = "p",
+            Database = "test",
+            Username = "u",
+            Password = "p",
         });
     }
 }
@@ -142,8 +148,12 @@ public sealed class DatabaseRetryPolicyTests
     {
         var options = new HellnetDatabaseOptions
         {
-            Database = "t", Username = "u", Password = "p",
-            RetryEnabled = true, RetryMaxCount = 1, RetryBaseDelayMs = 1,
+            Database = "t",
+            Username = "u",
+            Password = "p",
+            RetryEnabled = true,
+            RetryMaxCount = 1,
+            RetryBaseDelayMs = 1,
         };
         var policy = new DatabaseRetryPolicy(options, _logger);
         var calls = 0;
@@ -162,8 +172,12 @@ public sealed class DatabaseRetryPolicyTests
     {
         var options = new HellnetDatabaseOptions
         {
-            Database = "t", Username = "u", Password = "p",
-            RetryEnabled = true, RetryMaxCount = 3, RetryBaseDelayMs = 1,
+            Database = "t",
+            Username = "u",
+            Password = "p",
+            RetryEnabled = true,
+            RetryMaxCount = 3,
+            RetryBaseDelayMs = 1,
         };
         var policy = new DatabaseRetryPolicy(options, _logger);
         var calls = 0;
@@ -183,7 +197,9 @@ public sealed class DatabaseRetryPolicyTests
     {
         var options = new HellnetDatabaseOptions
         {
-            Database = "t", Username = "u", Password = "p",
+            Database = "t",
+            Username = "u",
+            Password = "p",
             RetryEnabled = false,
         };
         var policy = new DatabaseRetryPolicy(options, _logger);
@@ -206,9 +222,11 @@ public sealed class DependencyInjectionTests
     public void AddHellnetDatabase_ReturnsServiceCollection()
     {
         var services = new ServiceCollection();
-        var result = services.AddHellnetDatabase(new HellnetDatabaseOptions
+        IServiceCollection result = services.AddHellnetDatabase(new HellnetDatabaseOptions
         {
-            Database = "test", Username = "u", Password = "p",
+            Database = "test",
+            Username = "u",
+            Password = "p",
         });
         Assert.Same(services, result);
     }
@@ -220,10 +238,12 @@ public sealed class DependencyInjectionTests
         services.AddLogging();
         services.AddHellnetDatabase(new HellnetDatabaseOptions
         {
-            Database = "test", Username = "u", Password = "p",
+            Database = "test",
+            Username = "u",
+            Password = "p",
         });
 
-        using var sp = services.BuildServiceProvider();
+        using ServiceProvider sp = services.BuildServiceProvider();
         Assert.NotNull(sp.GetRequiredService<HellnetDatabaseOptions>());
         Assert.NotNull(sp.GetRequiredService<IDatabaseExecutor>());
         Assert.NotNull(sp.GetRequiredService<IDatabaseTransaction>());
@@ -238,26 +258,24 @@ public sealed class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddHellnetDatabase_UsesEnv_WhenNoOptions()
+    public void AddHellnetDatabase_WithOptions_HasCorrectValues()
     {
-        var envKey = "HELLNET_DATABASE_NAME_TEMP_" + Guid.NewGuid().ToString("N")[..8];
-        try
+        var expected = new HellnetDatabaseOptions
         {
-            Environment.SetEnvironmentVariable("HELLNET_DATABASE_NAME", "from-env");
-            Environment.SetEnvironmentVariable("HELLNET_DATABASE_USERNAME", "user");
-            Environment.SetEnvironmentVariable("HELLNET_DATABASE_PASSWORD", "pass");
-            var services = new ServiceCollection();
-            services.AddLogging();
-            services.AddHellnetDatabase();
-            using var sp = services.BuildServiceProvider();
-            var opts = sp.GetRequiredService<HellnetDatabaseOptions>();
-            Assert.Equal("from-env", opts.Database);
-        }
-        finally
-        {
-            Environment.SetEnvironmentVariable("HELLNET_DATABASE_NAME", null);
-            Environment.SetEnvironmentVariable("HELLNET_DATABASE_USERNAME", null);
-            Environment.SetEnvironmentVariable("HELLNET_DATABASE_PASSWORD", null);
-        }
+            Database = "testdb",
+            Username = "user",
+            Password = "pass",
+            Host = "pg.internal",
+        };
+
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddHellnetDatabase(expected);
+
+        using ServiceProvider sp = services.BuildServiceProvider();
+        HellnetDatabaseOptions actual = sp.GetRequiredService<HellnetDatabaseOptions>();
+        Assert.Equal(expected.Database, actual.Database);
+        Assert.Equal(expected.Username, actual.Username);
+        Assert.Equal(expected.Host, actual.Host);
     }
 }

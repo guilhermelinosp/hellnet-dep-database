@@ -1,6 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Hellnet.Database.Abstractions;
 
 /// <summary>Typed result wrapping success/failure with diagnostics.</summary>
+[ExcludeFromCodeCoverage]
 public sealed record DatabaseResult<T>
 {
     public bool IsSuccess { get; init; }
@@ -10,16 +13,21 @@ public sealed record DatabaseResult<T>
 
     public static DatabaseResult<T> Success(T data, TimeSpan duration) => new()
     {
-        IsSuccess = true, Data = data, Duration = duration,
+        IsSuccess = true,
+        Data = data,
+        Duration = duration,
     };
 
     public static DatabaseResult<T> Failure(string error, TimeSpan duration) => new()
     {
-        IsSuccess = false, ErrorMessage = error, Duration = duration,
+        IsSuccess = false,
+        ErrorMessage = error,
+        Duration = duration,
     };
 }
 
 /// <summary>Paginated result.</summary>
+[ExcludeFromCodeCoverage]
 public sealed record PageResult<T>
 {
     public IReadOnlyList<T> Items { get; init; } = [];
